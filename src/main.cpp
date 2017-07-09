@@ -3,6 +3,7 @@
 #include <string>
 #include "vm_def.h"
 #include <SDL2/SDL.h>
+#include "cpu.h"
 
 static bool parse_args(int argc, char **argv, AsmOpts *opts)
 {
@@ -61,8 +62,8 @@ int main(int argc, char **argv)
             "Chip8 Emulator",
             SDL_WINDOWPOS_UNDEFINED, /* Initial X Position */
             SDL_WINDOWPOS_UNDEFINED, /* Initial Y Position */
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT,
+            CHIP8_WINDOW_WIDTH,
+            CHIP8_WINDOW_HEIGHT,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* Flags */
         );
 

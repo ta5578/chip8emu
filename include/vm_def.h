@@ -1,6 +1,19 @@
 #pragma once
 
 #include <iostream>
+#include <cstdint>
+
+#define CHIP8_MEMORY_SIZE (4096)
+#define CHIP8_REGISTER_COUNT (16)
+#define CHIP8_STACK_DEPTH (16)
+#define CHIP8_KEY_COUNT (16)
+
+#define CHIP8_WINDOW_WIDTH (640)
+#define CHIP8_WINDOW_HEIGHT (480)
+
+#define CHIP8_PIXELS_WIDTH (64)
+#define CHIP8_PIXELS_HEIGHT (32)
+
 
 #define VLOG(x, y) do {\
         if ((x).verbose) {\
@@ -10,8 +23,6 @@
 
 #define V_UNUSED(x) ((void)(x))
 
-#define WINDOW_WIDTH (640)
-#define WINDOW_HEIGHT (480)
 
 struct AsmOpts {
     const char *in_file;
