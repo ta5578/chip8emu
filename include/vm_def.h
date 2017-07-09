@@ -10,6 +10,9 @@
 
 #define V_UNUSED(x) ((void)(x))
 
+#define WINDOW_WIDTH (640)
+#define WINDOW_HEIGHT (480)
+
 struct AsmOpts {
     const char *in_file;
     bool show_help, verbose;

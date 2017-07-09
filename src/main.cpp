@@ -2,6 +2,7 @@
 #include <exception>
 #include <string>
 #include "vm_def.h"
+#include <SDL2/SDL.h>
 
 static bool parse_args(int argc, char **argv, AsmOpts *opts)
 {
@@ -51,6 +52,31 @@ int main(int argc, char **argv)
 
         std::cout << "Reading from '" << opts.in_file << "'\n";
         std::cout << "Verbose: " << (opts.verbose ? "true" : "false") << "\n";
+
+        SDL_Init(SDL_INIT_VIDEO);
+
+        SDL_Window *win;
+
+        win = SDL_CreateWindow(
+            "Chip8 Emulator",
+            SDL_WINDOWPOS_UNDEFINED, /* Initial X Position */
+            SDL_WINDOWPOS_UNDEFINED, /* Initial Y Position */
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* Flags */
+        );
+
+        if (!win) {
+            throw std::invalid_argument("Couldn't create window!");
+        }
+
+        /* Now our window is open */
+
+        SDL_Delay(3000); /* Pause execution for 3 seconds */
+
+        /* Close the window and cleanup */
+        SDL_DestroyWindow(win);
+        SDL_Quit();
 
     } catch (const std::invalid_argument& e) {
         std::cerr << "Caught invalid argument: " << e.what() << "\n";

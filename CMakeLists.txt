@@ -37,4 +37,11 @@ else ()
     message("UnitTest++ was not found so unit tests will not be built and run!")
 endif()
 
+# Find SDL libraries
+# Silence CMake about a "trailing/leading whitespace" error
+cmake_policy(SET CMP0004 OLD)
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
 add_executable(chip8emu ${SOURCES})
+target_link_libraries(chip8emu ${SDL2_LIBRARIES})
