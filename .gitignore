@@ -1,0 +1,12 @@
+# Ignore build directory
+build/
+
+# Ignore scripts
+*.sh
+
+# Ignore bin
+*.o
+
+# Ignore temp files
+*.swp
+.fuse*
