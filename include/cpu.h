@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vm_def.h"
+#include <memory>
 
 class CPU {
     uint16_t opcode; /* The current opcode we're processing */
@@ -24,8 +25,10 @@ class CPU {
     /* HEX-based keypad (0x0 - 0xF) */
     uint8_t key[CHIP8_KEY_COUNT];
 
+    uint16_t next();
+
 public:
-    CPU();
+    CPU(std::unique_ptr<uint8_t> rom, size_t len);
     ~CPU();
 
     void emulate_cycle();

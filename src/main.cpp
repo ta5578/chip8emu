@@ -2,6 +2,7 @@
 #include <exception>
 #include <string>
 #include "vm_def.h"
+#include "utils.h"
 #include <SDL2/SDL.h>
 #include "cpu.h"
 
@@ -54,6 +55,10 @@ int main(int argc, char **argv)
         std::cout << "Reading from '" << opts.in_file << "'\n";
         std::cout << "Verbose: " << (opts.verbose ? "true" : "false") << "\n";
 
+        size_t len;
+        std::unique_ptr<uint8_t> rom = read_rom(opts.in_file, &len);
+        CPU cpu(std::move(rom), len);
+
         SDL_Init(SDL_INIT_VIDEO);
 
         SDL_Window *win;
@@ -73,7 +78,7 @@ int main(int argc, char **argv)
 
         /* Now our window is open */
 
-        SDL_Delay(3000); /* Pause execution for 3 seconds */
+        SDL_Delay(1000); /* Pause execution for 1 seconds */
 
         /* Close the window and cleanup */
         SDL_DestroyWindow(win);
