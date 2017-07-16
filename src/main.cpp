@@ -3,7 +3,7 @@
 #include <string>
 #include "vm_def.h"
 #include "utils.h"
-#include <SDL2/SDL.h>
+//#include <SDL2/SDL.h>
 #include "cpu.h"
 
 static bool parse_args(int argc, char **argv, AsmOpts *opts)
@@ -59,30 +59,30 @@ int main(int argc, char **argv)
         std::unique_ptr<uint8_t> rom = read_rom(opts.in_file, &len);
         CPU cpu(std::move(rom), len);
 
-        SDL_Init(SDL_INIT_VIDEO);
+        // SDL_Init(SDL_INIT_VIDEO);
 
-        SDL_Window *win;
+        // SDL_Window *win;
 
-        win = SDL_CreateWindow(
-            "Chip8 Emulator",
-            SDL_WINDOWPOS_UNDEFINED, /* Initial X Position */
-            SDL_WINDOWPOS_UNDEFINED, /* Initial Y Position */
-            CHIP8_WINDOW_WIDTH,
-            CHIP8_WINDOW_HEIGHT,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* Flags */
-        );
+        // win = SDL_CreateWindow(
+        //     "Chip8 Emulator",
+        //     SDL_WINDOWPOS_UNDEFINED, /* Initial X Position */
+        //     SDL_WINDOWPOS_UNDEFINED, /* Initial Y Position */
+        //     CHIP8_WINDOW_WIDTH,
+        //     CHIP8_WINDOW_HEIGHT,
+        //     SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* Flags */
+        // );
 
-        if (!win) {
-            throw std::invalid_argument("Couldn't create window!");
-        }
+        // if (!win) {
+        //     throw std::invalid_argument("Couldn't create window!");
+        // }
 
-        /* Now our window is open */
+        // /* Now our window is open */
 
-        SDL_Delay(1000); /* Pause execution for 1 seconds */
+        // SDL_Delay(1000); /* Pause execution for 1 seconds */
 
-        /* Close the window and cleanup */
-        SDL_DestroyWindow(win);
-        SDL_Quit();
+        // /* Close the window and cleanup */
+        // SDL_DestroyWindow(win);
+        // SDL_Quit();
 
     } catch (const std::invalid_argument& e) {
         std::cerr << "Caught invalid argument: " << e.what() << "\n";

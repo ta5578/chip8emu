@@ -152,7 +152,7 @@ void CPU::decode(uint16_t op)
     break;
     case 0xB000:
         /* ZJMP */
-        pc  = (op & 0x0FFF) += V[0];
+        pc  = (op & 0x0FFF) + V[0];
     break;
     case 0xC000:
         /* RAND */
@@ -215,13 +215,13 @@ void CPU::decode(uint16_t op)
         case 0x0055:
             /* DUMP */
             for (int i = 0; i <= (op & 0x0F00 >> 8); ++i) {
-                memory[I + i] = V[i];
+                memory[index + i] = V[i];
             }
         break;
         case 0x0065:
             /* IDUMP */
             for (int i = 0; i <= (op & 0x0F00 >> 8); ++i) {
-                V[i] = memory[I + i];
+                V[i] = memory[index + i];
             }
         break;
         }
