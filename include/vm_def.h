@@ -14,6 +14,7 @@
 #define CHIP8_PIXELS_WIDTH (64)
 #define CHIP8_PIXELS_HEIGHT (32)
 
+#define CHIP8_START_ADDRESS (0x0200)
 
 #define VLOG(x, y) do {\
         if ((x).verbose) {\
