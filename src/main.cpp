@@ -3,89 +3,87 @@
 #include <string>
 #include "vm_def.h"
 #include "utils.h"
-//#include <SDL2/SDL.h>
+#include <SDL2/SDL.h>
 #include "cpu.h"
-
-static bool parse_args(int argc, char **argv, AsmOpts *opts)
-{
-    if (argc < 2) {
-        return false;
-    }
-    std::string first(argv[1]);
-    if (first == "-h" || first == "--help") {
-        opts->show_help = true;
-        return true;
-    }
-    opts->in_file = argv[1];
-
-    for (int i = 2; i < argc; ++i) {
-        std::string arg(argv[i]);
-        if (arg == "--verbose" || arg == "-v") {
-            opts->verbose = true;
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
+#include <cstring>
 
 static void show_help()
 {
     std::cout << "chip8emu is an emulator for the chip 8 VM.\n";
     std::cout << "The only required argument is the input .rom file.\n";
     std::cout << "Here are the supported options:\n";
-    std::cout << "   --verbose | -v -- verbose output\n";
     std::cout << "   --help | -h -- displays this help screen\n";
+}
+
+static void draw(SDL_Window *win, uint8_t *gfx)
+{
+    SDL_Surface *surface = SDL_GetWindowSurface(win);
+    uint8_t *pixels = static_cast<uint8_t*>(surface->pixels);
+    std::memset(pixels, 0, surface->w * surface->h * sizeof(*pixels));
+
+    for (uint8_t x = 0; x < CHIP8_PIXELS_WIDTH; ++x) {
+        for (uint8_t y = 0; y < CHIP8_PIXELS_HEIGHT; ++y) {
+            pixels[y + (x * surface->w)] = gfx[(y / 10) + (x / 10) * 64] ? 0xFF : 0;
+        }
+    }
+    SDL_UpdateWindowSurface(win);
 }
 
 int main(int argc, char **argv)
 {
     try {
-        AsmOpts opts;
-        if (!parse_args(argc, argv, &opts)) {
+        if (argc < 2) {
             show_help();
             return EXIT_FAILURE;
         }
 
-        if (opts.show_help) {
+        if (std::strcmp(argv[1], "-h") == 0 || std::strcmp(argv[1], "--help") == 0) {
             show_help();
             return EXIT_SUCCESS;
         }
 
-        std::cout << "Reading from '" << opts.in_file << "'\n";
-        std::cout << "Verbose: " << (opts.verbose ? "true" : "false") << "\n";
+        std::cout << "Reading from '" << argv[1] << "'\n";
 
-        size_t len;
-        std::unique_ptr<uint8_t> rom = read_rom(opts.in_file, &len);
-        CPU cpu(std::move(rom), len);
+        std::FILE *rom = std::fopen(argv[1], "rb");
+        if (!rom) {
+            std::cerr << "Couldn't open "  << argv[1] << " for reading!\n";
+            return EXIT_FAILURE;
+        }
+        CPU cpu(rom);
+        std::fclose(rom);
 
-        // SDL_Init(SDL_INIT_VIDEO);
+        SDL_Init(SDL_INIT_VIDEO);
+        SDL_Window *win = SDL_CreateWindow(
+            "Chip8 Emulator",
+            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_UNDEFINED,
+            CHIP8_WINDOW_WIDTH,
+            CHIP8_WINDOW_HEIGHT,
+            0
+        );
 
-        // SDL_Window *win;
+        if (!win) {
+            std::cerr << "Error creating window! Error: " << SDL_GetError() << "\n";
+            return EXIT_FAILURE;
+        }
 
-        // win = SDL_CreateWindow(
-        //     "Chip8 Emulator",
-        //     SDL_WINDOWPOS_UNDEFINED, /* Initial X Position */
-        //     SDL_WINDOWPOS_UNDEFINED, /* Initial Y Position */
-        //     CHIP8_WINDOW_WIDTH,
-        //     CHIP8_WINDOW_HEIGHT,
-        //     SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /* Flags */
-        // );
+        bool isRunning = true;
+        while (isRunning) {
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT) {
+                    isRunning = false;
+                }
+            }
+            cpu.emulate_cycle();
+            if (cpu.need_draw) {
+                draw(win, cpu.gfx);
+            }
+        }
 
-        // if (!win) {
-        //     throw std::invalid_argument("Couldn't create window!");
-        // }
+        SDL_DestroyWindow(win);
+        SDL_Quit();
 
-        // /* Now our window is open */
-
-        // SDL_Delay(1000); /* Pause execution for 1 seconds */
-
-        // /* Close the window and cleanup */
-        // SDL_DestroyWindow(win);
-        // SDL_Quit();
-
-    } catch (const std::invalid_argument& e) {
-        std::cerr << "Caught invalid argument: " << e.what() << "\n";
     } catch (const std::exception& e) {
         std::cerr << "Caught generic exception: " << e.what() << "\n";
     } catch (...) {

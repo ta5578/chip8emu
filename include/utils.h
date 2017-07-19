@@ -1,53 +1,60 @@
 #pragma once
 
-#include <cstdlib>
-#include <cstdio>
-#include <memory>
 #include <string>
+#include <cctype>
 
-inline size_t fsize(FILE *fp)
+inline uint16_t endi(uint16_t num)
 {
-    /* Get where we are in the file first */
-    size_t pos = std::ftell(fp);
-
-    /* Now go to the end */
-    std::fseek(fp, 0, SEEK_END);
-
-    /* Get the size of the file now (end - beginning) */
-    size_t fsize = std::ftell(fp);
-
-    /* Rewind to where we were */
-    std::fseek(fp, pos, SEEK_SET);
-
-    return fsize;
+    #if (__BYTE_ORDER == __LITTLE_ENDIAN)
+        return (num & 0x00FF) << 8 | (num & 0xFF00) >> 8;
+    #elif (__BYTE_ORDER == __BIG_ENDIAN)
+        return num;
+    #else
+        #error "Couldn't determine endianess!"
+    #endif
 }
 
-inline std::unique_ptr<uint8_t> read_rom(const char *path, size_t *size)
+/* Given ^\$[0-9]+ string and return a hexadecimal representation */
+inline uint16_t to_hex(const std::string& s)
 {
-    std::FILE *rom = std::fopen(path, "rb");
-    if (!rom) { return nullptr; }
+    if (s.empty()) {
+        return 0;
+    }
 
-    size_t file_size = fsize(rom);
-    uint8_t *mem = static_cast<uint8_t*>(std::malloc(file_size));
-    if (!mem) { return nullptr; }
-
-    std::fread(mem, sizeof(*mem), file_size, rom);
-    std::fclose(rom);
-
-    if (size) { *size = file_size; }
-    return std::unique_ptr<uint8_t>(mem);
+    uint16_t val = 0x0000;
+    for (const char c : s) {
+        val *= 16;
+        auto cl = std::tolower(c);
+        if (cl >= 'a' && cl <= 'f') {
+            val += (cl - 'a' + 10);
+        } else if (std::isdigit(cl)) {
+            val += (cl - '0');
+        }
+    }
+    return val;
 }
 
-inline std::string to_str(uint16_t num)
+inline std::string from_hex(uint16_t num)
 {
+    if (num == 0) {
+        return "0x0000";
+    }
+
     char buf[sizeof(num)];
+
     int i = 0;
     while (num) {
-        auto d = num % 10;
-        buf[i++] = d + '0';
-        num /= 10;
+        uint16_t d = num % 16;
+        if (d >= 10 && d <= 15) {
+            buf[i] = ('A' + (d - 10));
+        } else {
+            buf[i] = ('0' + d);
+        }
+        num /= 16;
+        ++i;
     }
-    std::string s;
+
+    std::string s = "0x";
     for (i = i - 1; i >= 0; --i) {
         s += buf[i];
     }
