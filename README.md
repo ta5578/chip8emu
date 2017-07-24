@@ -24,7 +24,8 @@ ROM files can either be found online or created. You can use the [Chip8
 Assembler](https://github.com/ta5578/chip8asm) I've written to write ROM files of your own.
 
 ## Running the emulator
-The emulator can be run by building it and supplying it the ROM file of choice:
+The emulator can be run by building it and supplying it the ROM file of choice.
+Here's a screenshot of the emulator running on the provided example:
 
 ```
 ./chip8emu myrom.rom
@@ -32,6 +33,7 @@ The emulator can be run by building it and supplying it the ROM file of choice:
 ![Screenshot](/rsc/Chip8Emu.png?raw=true "Emulator Screenshot")
 
 See the `/examples` directory for some ROM file examples.
+Note that _verbose_ logging is enabled when the project is built in DEBUG mode.
 
 ## Libraries and Tools
 * [CMake](https://cmake.org/)
