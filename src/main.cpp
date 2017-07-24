@@ -1,7 +1,4 @@
 #include <iostream>
-#include <exception>
-#include <string>
-#include "vm_def.h"
 #include "utils.h"
 #include <SDL2/SDL.h>
 #include "cpu.h"
@@ -18,15 +15,18 @@ static void show_help()
 static void draw(SDL_Window *win, uint8_t *gfx)
 {
     SDL_Surface *surface = SDL_GetWindowSurface(win);
-    uint8_t *pixels = static_cast<uint8_t*>(surface->pixels);
+    SDL_LockSurface(surface);
+    uint32_t *pixels = static_cast<uint32_t*>(surface->pixels);
     std::memset(pixels, 0, surface->w * surface->h * sizeof(*pixels));
 
-    for (uint8_t x = 0; x < CHIP8_PIXELS_WIDTH; ++x) {
-        for (uint8_t y = 0; y < CHIP8_PIXELS_HEIGHT; ++y) {
-            pixels[y + (x * surface->w)] = gfx[(y / 10) + (x / 10) * 64] ? 0xFF : 0;
+    for (uint32_t i = 0; i < CHIP8_WINDOW_HEIGHT; ++i) {
+        for (uint32_t j = 0; j < CHIP8_WINDOW_WIDTH; ++j) {
+            pixels[j + i * surface->w] = gfx[(j / CHIP8_WINDOW_FACTOR) + (i / CHIP8_WINDOW_FACTOR) * CHIP8_PIXELS_WIDTH] ? 0xFFFFFFFF : 0;
         }
     }
+    SDL_UnlockSurface(surface);
     SDL_UpdateWindowSurface(win);
+    SDL_Delay(15);
 }
 
 int main(int argc, char **argv)
@@ -52,11 +52,15 @@ int main(int argc, char **argv)
         CPU cpu(rom);
         std::fclose(rom);
 
-        SDL_Init(SDL_INIT_VIDEO);
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            std::cerr << "Couldn't initialize SDL!\n";
+            return EXIT_FAILURE;
+        }
+
         SDL_Window *win = SDL_CreateWindow(
             "Chip8 Emulator",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
             CHIP8_WINDOW_WIDTH,
             CHIP8_WINDOW_HEIGHT,
             0
@@ -84,8 +88,6 @@ int main(int argc, char **argv)
         SDL_DestroyWindow(win);
         SDL_Quit();
 
-    } catch (const std::exception& e) {
-        std::cerr << "Caught generic exception: " << e.what() << "\n";
     } catch (...) {
         std::cerr << "Unknown error! Please retry!\n";
     }

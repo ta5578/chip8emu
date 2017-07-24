@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vm_def.h"
 #include <cstdio>
 #include <SDL2/SDL.h>
+#include "utils.h"
 
 static const unsigned char chip8_fontset[CHIP8_FONT_COUNT] =
 {
@@ -75,4 +75,6 @@ struct CPU {
     CPU(std::FILE *rom);
 
     void emulate_cycle();
+
+    void dump();
 };

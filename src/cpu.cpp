@@ -1,5 +1,4 @@
 #include "cpu.h"
-#include "utils.h"
 #include <cstring>
 #include <string>
 
@@ -20,10 +19,22 @@ CPU::CPU(std::FILE *rom) : sp(0), opcode(0), index(0),
     std::memset(key, 0, sizeof(key));
 }
 
+void CPU::dump()
+{
+    for (int i = 0; i < CHIP8_REGISTER_COUNT; ++i) {
+        LOG("V[" << i << " : " << from_hex(V[i]) << "]");
+    }
+
+    for (int i = 0; i < CHIP8_KEY_COUNT; ++i) {
+        LOG("K[" << i << " : " << from_hex(key[i]) << "]");
+    }
+}
+
 void CPU::emulate_cycle()
 {
     opcode = next();
-    LOG("Read " << from_hex(opcode) << " from PC: " << from_hex(pc));
+    LOG("Opcode: " << from_hex(opcode) << " PC: " << from_hex(pc) << " SP: " << from_hex(sp));
+    LOG("Index: " << from_hex(index));
     decode(opcode);
     if (delay_timer > 0) {
         --delay_timer;
@@ -35,6 +46,7 @@ void CPU::emulate_cycle()
         }
         --sound_timer;
     }
+    dump();
 }
 
 void CPU::decode(uint16_t op)
@@ -58,6 +70,7 @@ void CPU::decode(uint16_t op)
     } /* End 0x0000 */
     case 0x1000:
         /* JMP */
+        LOG("Jumping to " << from_hex((op & 0x0FFF)));
         pc = op & 0x0FFF;
     break;
     case 0x2000:
@@ -190,12 +203,12 @@ void CPU::decode(uint16_t op)
 
         V[0xF] = 0; /* Clear the collision bit */
         for (uint8_t h = 0; h < height; ++h) {
-            uint8_t pixel = memory[index + h];
+            const uint8_t pixel = memory[index + h];
             /* Now read in the row value */
             for (uint8_t w = 0; w < 8; ++w) {
                 /* Check if the bit is set in the 8-pixel row */
                 if (pixel & (0x0080 >> w)) {
-                    uint8_t offset = x + w + ((y + h) * CHIP8_PIXELS_WIDTH);
+                    const uint8_t offset = x + w + ((y + h) * CHIP8_PIXELS_WIDTH);
                     if (gfx[offset] == 1) {
                         V[0xF] = 1; /* Collision! */
                     }
