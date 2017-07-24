@@ -29,6 +29,7 @@ The emulator can be run by building it and supplying it the ROM file of choice:
 ```
 ./chip8emu myrom.rom
 ```
+![Screenshot](/rsc/Chip8Emu.png?raw=true "Emulator Screenshot")
 
 See the `/examples` directory for some ROM file examples.
 
