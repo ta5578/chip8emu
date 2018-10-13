@@ -2,7 +2,7 @@
 
 #include <cstdio>
 #include <SDL2/SDL.h>
-#include "utils.h"
+#include "common.h"
 
 static const unsigned char chip8_fontset[CHIP8_FONT_COUNT] =
 {
@@ -72,7 +72,7 @@ struct CPU {
     uint16_t next();
     void decode(uint16_t op);
 
-    CPU(std::FILE *rom);
+    CPU(ROM rom);
 
     void emulate_cycle();
 

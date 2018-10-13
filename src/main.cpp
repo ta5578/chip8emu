@@ -1,8 +1,8 @@
 #include <iostream>
-#include "utils.h"
 #include <SDL2/SDL.h>
 #include "cpu.h"
 #include <cstring>
+#include "utils.h"
 
 static void show_help()
 {
@@ -44,13 +44,8 @@ int main(int argc, char **argv)
 
         std::cout << "Reading from '" << argv[1] << "'\n";
 
-        std::FILE *rom = std::fopen(argv[1], "rb");
-        if (!rom) {
-            std::cerr << "Couldn't open "  << argv[1] << " for reading!\n";
-            return EXIT_FAILURE;
-        }
-        CPU cpu(rom);
-        std::fclose(rom);
+        ROM rom = read_bin_file(argv[1]);
+        CPU cpu(std::move(rom));
 
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
             std::cerr << "Couldn't initialize SDL!\n";

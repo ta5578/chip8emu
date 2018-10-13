@@ -4,8 +4,9 @@ project(chip8emu)
 set(CMAKE_CXX_STANDARD 14)
 
 # Set additional compiler flags and link directories
+# For MSVC, we disable warning 4715 which is generated in SDL.
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX /D_CRT_SECURE_NO_WARNINGS /wd4715")
     set(SDL2_LIBRARY "${CMAKE_SOURCE_DIR}/lib/win/SDL2.lib" "${CMAKE_SOURCE_DIR}/lib/win/SDL2main.lib")
     link_directories(${CMAKE_SOURCE_DIR}/lib/win)
     set(SDL2_RUNTIME_LIB "${CMAKE_SOURCE_DIR}/lib/win/SDL2.dll")

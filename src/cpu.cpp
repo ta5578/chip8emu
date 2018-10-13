@@ -1,17 +1,19 @@
 #include "cpu.h"
 #include <cstring>
-#include <string>
 #include <iostream>
+#include "utils.h"
 
-CPU::CPU(std::FILE *rom) : sp(0), opcode(0), index(0),
+CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
     pc(0x200), delay_timer(0), sound_timer(0), need_draw(false)
 {
     /* Load font into memory */
     std::memcpy(memory, chip8_fontset, sizeof(chip8_fontset));
 
     /* Load game into memory */
-    std::fread(memory + CHIP8_START_ADDRESS, sizeof(*memory),
-        CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS, rom);
+    //std::fread(memory + CHIP8_START_ADDRESS, sizeof(*memory),
+    //    CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS, rom);
+
+    std::memcpy(memory + CHIP8_START_ADDRESS, rom.get(), CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS);
 
     /* Clear all registers, stack, graphics */
     std::memset(V, 0, sizeof(V));
@@ -23,19 +25,19 @@ CPU::CPU(std::FILE *rom) : sp(0), opcode(0), index(0),
 void CPU::dump()
 {
     for (int i = 0; i < CHIP8_REGISTER_COUNT; ++i) {
-        LOG("V[" << i << " : " << from_hex(V[i]) << "]");
+        LOG("V[%d] : %s", i, from_hex(V[i]).c_str());
     }
 
     for (int i = 0; i < CHIP8_KEY_COUNT; ++i) {
-        LOG("K[" << i << " : " << from_hex(key[i]) << "]");
+        LOG("K[%d] : %s", i, from_hex(key[i]).c_str());
     }
 }
 
 void CPU::emulate_cycle()
 {
     opcode = next();
-    LOG("Opcode: " << from_hex(opcode) << " PC: " << from_hex(pc) << " SP: " << from_hex(sp));
-    LOG("Index: " << from_hex(index));
+    LOG("Opcode %s PC: %s SP: %s", from_hex(opcode).c_str(), from_hex(pc).c_str(), from_hex(sp).c_str());
+    LOG("Index: %s", from_hex(index).c_str());
     decode(opcode);
     if (delay_timer > 0) {
         --delay_timer;
@@ -71,7 +73,7 @@ void CPU::decode(uint16_t op)
     } /* End 0x0000 */
     case 0x1000:
         /* JMP */
-        LOG("Jumping to " << from_hex((op & 0x0FFF)));
+        LOG("Jumping to %s", from_hex(op & 0x0FFF).c_str());
         pc = op & 0x0FFF;
     break;
     case 0x2000:
@@ -193,7 +195,7 @@ void CPU::decode(uint16_t op)
     break;
     case 0xC000:
         /* RAND */
-        V[(op & 0x0F00) >> 8] = (op & 0x00FF) + std::rand();
+        V[(op & 0x0F00) >> 8] = (op & 0x00FF) + static_cast<uint8_t>(std::rand());
         pc += 2;
     break;
     case 0xD000: {
@@ -307,7 +309,7 @@ void CPU::decode(uint16_t op)
     break;
     } /* End 0xF000 */
     default:
-        LOG(op << " is an invalid opcode!");
+        LOG("%d is an invalid opcode!", op);
     break;
     }
 }

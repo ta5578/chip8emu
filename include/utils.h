@@ -2,34 +2,8 @@
 
 #include <string>
 #include <cctype>
-
-#ifndef NDEBUG
-    #include <iostream>
-#endif
-
-#define CHIP8_MEMORY_SIZE (4096)
-#define CHIP8_REGISTER_COUNT (16)
-#define CHIP8_STACK_DEPTH (16)
-#define CHIP8_KEY_COUNT (16)
-#define CHIP8_FONT_COUNT (80)
-
-#define CHIP8_PIXELS_WIDTH (64)
-#define CHIP8_PIXELS_HEIGHT (32)
-
-#define CHIP8_WINDOW_FACTOR (10)
-
-#define CHIP8_WINDOW_WIDTH (CHIP8_PIXELS_WIDTH * CHIP8_WINDOW_FACTOR)
-#define CHIP8_WINDOW_HEIGHT (CHIP8_PIXELS_HEIGHT * CHIP8_WINDOW_FACTOR)
-
-#define CHIP8_START_ADDRESS (0x0200)
-
-#ifndef NDEBUG
-    #define LOG(x) std::cout << x << "\n"
-#else
-    #define LOG(x)
-#endif
-
-#define V_UNUSED(x) ((void)(x))
+#include <cstdio>
+#include "common.h"
 
 inline uint16_t endi(uint16_t num)
 {
@@ -54,9 +28,9 @@ inline uint16_t to_hex(const std::string& s)
         val *= 16;
         auto cl = std::tolower(c);
         if (cl >= 'a' && cl <= 'f') {
-            val += (cl - 'a' + 10);
+            val += static_cast<uint16_t>(cl - 'a' + 10);
         } else if (std::isdigit(cl)) {
-            val += (cl - '0');
+            val += static_cast<uint16_t>(cl - '0');
         }
     }
     return val;
@@ -74,9 +48,9 @@ inline std::string from_hex(uint16_t num)
     while (num) {
         uint16_t d = num % 16;
         if (d >= 10 && d <= 15) {
-            buf[i] = ('A' + (d - 10));
+            buf[i] = static_cast<char>('A' + (d - 10));
         } else {
-            buf[i] = ('0' + d);
+            buf[i] = static_cast<char>('0' + d);
         }
         num /= 16;
         ++i;
@@ -87,4 +61,23 @@ inline std::string from_hex(uint16_t num)
         s += buf[i];
     }
     return s;
+}
+
+inline ROM read_bin_file(const char* filePath)
+{
+    std::FILE* rom = std::fopen(filePath, "rb");
+    if (rom == nullptr) {
+        return nullptr;
+    }
+
+    std::fseek(rom, 0, SEEK_END);
+    auto fileSize = std::ftell(rom);
+    std::fseek(rom, 0, SEEK_SET);
+
+    auto memory = std::make_unique<uint8_t[]>(fileSize);
+    
+    std::fread(memory.get(), sizeof(uint8_t), fileSize, rom);
+    std::fclose(rom);
+
+    return memory;
 }
