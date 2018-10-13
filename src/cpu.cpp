@@ -107,11 +107,12 @@ void CPU::decode(uint16_t op)
 
 void CPU::processF(uint16_t op)
 {
-    uint16_t low = op & 0x00FF;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint16_t low = op & 0x00FF;
     switch (low) {
     case 0x0007:
         /* DELA */
-        V[(op & 0x0F00) >> 8] = delay_timer;
+        V[X] = delay_timer;
         pc += 2;
         break;
     case 0x000A:
@@ -120,7 +121,7 @@ void CPU::processF(uint16_t op)
         const uint8_t *keys = SDL_GetKeyboardState(nullptr);
         for (uint8_t i = 0; i < CHIP8_KEY_COUNT; ++i) {
             if (keys[keymap[i]]) {
-                V[(op & 0x0F00 >> 8)] = i;
+                V[X] = i;
                 pc += 2;
             }
         }
@@ -128,41 +129,41 @@ void CPU::processF(uint16_t op)
     break;
     case 0x0015:
         /* DELR */
-        delay_timer = V[(op & 0x0F00) >> 8];
+        delay_timer = V[X];
         pc += 2;
         break;
     case 0x0018:
         /* SNDR */
-        sound_timer = V[(op & 0x0F00) >> 8];
+        sound_timer = V[X];
         pc += 2;
         break;
     case 0x001E:
         /* IADD */
-        index += V[(op & 0x0F00) >> 8];
+        index += V[X];
         pc += 2;
         break;
     case 0x0029:
         /* SILS */
-        index = V[(op & 0x0F00) >> 8] * 5;
+        index = V[X] * 5;
         pc += 2;
         break;
     case 0x0033:
         /* BCD -- Store "102" as "1", "0", "2" in memory */
-        memory[index] = V[(op & 0x0F00) >> 8] / 100;
-        memory[index + 1] = (V[(op & 0x0F00) >> 8] / 10) % 10;
-        memory[index + 2] = (V[(op & 0x0F00) >> 8] % 100) % 10;
+        memory[index] = V[X] / 100;
+        memory[index + 1] = (V[X] / 10) % 10;
+        memory[index + 2] = (V[X] % 100) % 10;
         pc += 2;
         break;
     case 0x0055:
         /* DUMP */
-        for (int i = 0; i <= (op & 0x0F00 >> 8); ++i) {
+        for (int i = 0; i <= X; ++i) {
             memory[index + i] = V[i];
         }
         pc += 2;
         break;
     case 0x0065:
         /* IDUMP */
-        for (int i = 0; i <= (op & 0x0F00 >> 8); ++i) {
+        for (int i = 0; i <= X; ++i) {
             V[i] = memory[index + i];
         }
         pc += 2;
@@ -172,11 +173,12 @@ void CPU::processF(uint16_t op)
 
 void CPU::processE(uint16_t op)
 {
-    uint16_t low = op & 0x00FF;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint16_t low = op & 0x00FF;
     switch (low) {
     case 0x009E:
         /* SKK */
-        if (key[(op & 0x0F00) >> 8]) {
+        if (key[X]) {
             pc += 4;
         } else {
             pc += 2;
@@ -184,11 +186,14 @@ void CPU::processE(uint16_t op)
         break;
     case 0x00A1:
         /* SKNK */
-        if (!key[(op & 0x0F00) >> 8]) {
+        if (!key[X]) {
             pc += 4;
         } else {
             pc += 2;
         }
+        break;
+    default:
+        LOG("processE() 0x%04X isn't recognized.", op);
         break;
     }
 }
@@ -222,7 +227,9 @@ void CPU::processD(uint16_t op)
 void CPU::processC(uint16_t op)
 {
     /* RAND */
-    V[(op & 0x0F00) >> 8] = (op & 0x00FF) + static_cast<uint8_t>(std::rand());
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t NN = (op & 0x00FF);
+    V[X] = NN & static_cast<uint8_t>(std::rand());
     pc += 2;
 }
 
@@ -241,8 +248,10 @@ void CPU::processA(uint16_t op)
 
 void CPU::process9(uint16_t op)
 {
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t Y = (op & 0x00F0) >> 4;
     /* SKRNE */
-    if (V[(op & 0x0F00) >> 8] != V[(op & 0x00F0) >> 4]) {
+    if (V[X] != V[Y]) {
         pc += 4;
     } else {
         pc += 2;
@@ -251,62 +260,71 @@ void CPU::process9(uint16_t op)
 
 void CPU::process8(uint16_t op)
 {
-    uint16_t low = op & 0x000F;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t Y = (op & 0x00F0) >> 4;
+    const uint16_t low = op & 0x000F;
     switch (low) {
     case 0x0000:
         /* ASN */
-        V[(op & 0x00F0) >> 4] = V[(op & 0x0F00) >> 8];
+        V[X] = V[Y];
         pc += 2;
         break;
     case 0x0001:
         /* OR */
-        V[(op & 0x0F00) >> 8] |= V[(op & 0x00F0) >> 4];
+        V[X] |= V[Y];
         pc += 2;
         break;
     case 0x0002:
         /* AND */
-        V[(op & 0x0F00) >> 8] &= V[(op & 0x00F0) >> 4];
+        V[X] &= V[Y];
         pc += 2;
         break;
     case 0x0003:
         /* XOR */
-        V[(op & 0x0F00) >> 8] ^= V[(op & 0x00F0) >> 4];
+        V[X] ^= V[Y];
         pc += 2;
         break;
     case 0x0004:
         /* RADD */
-        if (V[(op & 0x00F0) >> 4] > (0xFF - V[(op & 0x0F00) >> 8]))
+        if (V[Y] > (0xFF - V[X])) // TODO: visit this logic
             V[0xF] = 1; /* carry */
         else
             V[0xF] = 0;
-        V[(op & 0x0F00) >> 8] += V[(op & 0x00F0) >> 4];
+        V[X] += V[Y];
         pc += 2;
         break;
     case 0x0005:
         /* SUB */
-        if (V[(op & 0x00F0) >> 4] > (0xFF - V[(op & 0x0F00) >> 8]))
-            V[0xF] = 1; /* borrow */
+        if (V[Y] > (0xFF - V[X])) // TODO: visit this logic
+            V[0xF] = 0; /* borrow */
         else
-            V[0xF] = 0;
-        V[(op & 0x0F00) >> 8] -= V[(op & 0x00F0) >> 4];
+            V[0xF] = 1;
+        V[X] -= V[Y];
         pc += 2;
         break;
     case 0x0006:
         /* SHR */
-        V[0xF] = V[(op & 0x0F00) >> 8] & 0x1;
-        V[(op * 0x0F00) >> 8] >>= 1;
+        V[0xF] = V[X] & 0x1;
+        V[X] >>= 1;
         pc += 2;
         break;
     case 0x0007:
         /* RSUB */
-        V[(op & 0x0F00) >> 8] = V[(op & 0x00F0) >> 4] - V[(op & 0x0F00) >> 8];
+        if (V[Y] > (0xFF - V[X])) // TODO: visit this logic
+            V[0xF] = 0; /* borrow */
+        else
+            V[0xF] = 1;
+        V[X] = V[Y] - V[X];
         pc += 2;
         break;
     case 0x000E:
         /* SHL */
-        V[0xF] = V[(op & 0x0F00) >> 8] & 0x8000;
-        V[(op * 0x0F00) >> 8] <<= 1;
+        V[0xF] = V[X] & 0x8000; // TODO: does this store the 1 and 0 as '1' and '0' or as the value?
+        V[X] <<= 1;
         pc += 2;
+        break;
+    default:
+        LOG("process8() 0x%04X isn't recognized", op);
         break;
     }
 }
@@ -314,21 +332,27 @@ void CPU::process8(uint16_t op)
 void CPU::process7(uint16_t op)
 {
     /* ADD */
-    V[(op & 0x0F00) >> 8] += op & 0x00FF;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t NN = (op & 0x00FF);
+    V[X] += NN;
     pc += 2;
 }
 
 void CPU::process6(uint16_t op)
 {
     /* LOAD */
-    V[(op & 0x0F00) >> 8] = op & 0x00FF;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t NN = (op & 0x00FF);
+    V[X] = NN;
     pc += 2;
 }
 
 void CPU::process5(uint16_t op)
 {
     /* SKRE */
-    if (V[(op & 0x0F00) >> 8] == V[(op & 0x00F0) >> 4]) {
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t Y = (op & 0x00F0) >> 4;
+    if (V[X] == V[Y]) {
         pc += 4;
     } else {
         pc += 2;
@@ -338,7 +362,9 @@ void CPU::process5(uint16_t op)
 void CPU::process4(uint16_t op)
 {
     /* SKNE */
-    if (V[(op & 0x0F00) >> 8] != (op & 0x00FF)) {
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t NN = (op & 0x00FF);
+    if (V[X] != NN) {
         pc += 4;
     } else {
         pc += 2;
@@ -348,7 +374,9 @@ void CPU::process4(uint16_t op)
 void CPU::process3(uint16_t op)
 {
     /* SKE */
-    if (V[(op & 0x0F00) >> 8] == (op & 0x00FF)) {
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t NN = (op & 0x00FF);
+    if (V[X] == NN) {
         pc += 4;
     } else {
         pc += 2;
@@ -365,8 +393,9 @@ void CPU::process2(uint16_t op)
 void CPU::process1(uint16_t op)
 {
     /* JMP */
-    LOG("Jumping to %s", from_hex(op & 0x0FFF).c_str());
-    pc = op & 0x0FFF;
+    const uint16_t dest = (op & 0x0FFF);
+    LOG("Jumping to 0x%04X", dest);
+    pc = dest;
 }
 
 void CPU::process0(uint16_t op)
