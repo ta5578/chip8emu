@@ -10,9 +10,6 @@ CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
     std::memcpy(memory, chip8_fontset, sizeof(chip8_fontset));
 
     /* Load game into memory */
-    //std::fread(memory + CHIP8_START_ADDRESS, sizeof(*memory),
-    //    CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS, rom);
-
     std::memcpy(memory + CHIP8_START_ADDRESS, rom.get(), CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS);
 
     /* Clear all registers, stack, graphics */
