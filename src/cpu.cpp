@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include <cstring>
 #include <string>
+#include <iostream>
 
 CPU::CPU(std::FILE *rom) : sp(0), opcode(0), index(0),
     pc(0x200), delay_timer(0), sound_timer(0), need_draw(false)
