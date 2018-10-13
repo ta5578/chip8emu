@@ -21,7 +21,7 @@ static void draw(SDL_Window *win, uint8_t *gfx)
 
     for (uint32_t i = 0; i < CHIP8_WINDOW_HEIGHT; ++i) {
         for (uint32_t j = 0; j < CHIP8_WINDOW_WIDTH; ++j) {
-            pixels[j + i * surface->w] = gfx[(j / CHIP8_WINDOW_FACTOR) + (i / CHIP8_WINDOW_FACTOR) * CHIP8_PIXELS_WIDTH] ? 0xFFFFFFFF : 0;
+            pixels[j + i * surface->w] = gfx[(j / CHIP8_WINDOW_SCALAR) + (i / CHIP8_WINDOW_SCALAR) * CHIP8_PIXELS_WIDTH] ? 0xFFFFFFFF : 0;
         }
     }
     SDL_UnlockSurface(surface);
@@ -41,8 +41,6 @@ int main(int argc, char **argv)
             show_help();
             return EXIT_SUCCESS;
         }
-
-        std::cout << "Reading from '" << argv[1] << "'\n";
 
         ROM rom = read_bin_file(argv[1]);
         CPU cpu(std::move(rom));
@@ -75,8 +73,8 @@ int main(int argc, char **argv)
                 }
             }
             cpu.emulate_cycle();
-            if (cpu.need_draw) {
-                draw(win, cpu.gfx);
+            if (cpu.needsDraw()) {
+                draw(win, cpu.getGFX());
             }
         }
 

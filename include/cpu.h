@@ -43,8 +43,20 @@ static const int keymap[CHIP8_KEY_COUNT] = {
     SDLK_f
 };
 
-struct CPU {
+class CPU {
+public:
+    CPU(ROM rom);
 
+    void emulate_cycle();
+    uint16_t next();
+    void decode(uint16_t op);
+
+    void dump();
+    bool needsDraw() const;
+
+    uint8_t* getGFX();
+
+private:
     uint8_t memory[CHIP8_MEMORY_SIZE]; /* Available memory */
 
     uint8_t gfx[CHIP8_PIXELS_WIDTH * CHIP8_PIXELS_HEIGHT]; /* Graphics memory */
@@ -69,12 +81,20 @@ struct CPU {
 
     bool need_draw;
 
-    uint16_t next();
-    void decode(uint16_t op);
-
-    CPU(ROM rom);
-
-    void emulate_cycle();
-
-    void dump();
+    void processF(uint16_t op);
+    void processE(uint16_t op);
+    void processD(uint16_t op);
+    void processC(uint16_t op);
+    void processB(uint16_t op);
+    void processA(uint16_t op);
+    void process9(uint16_t op);
+    void process8(uint16_t op);
+    void process7(uint16_t op);
+    void process6(uint16_t op);
+    void process5(uint16_t op);
+    void process4(uint16_t op);
+    void process3(uint16_t op);
+    void process2(uint16_t op);
+    void process1(uint16_t op);
+    void process0(uint16_t op);
 };
