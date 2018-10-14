@@ -22,11 +22,11 @@ CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
 void CPU::dump()
 {
     for (int i = 0; i < CHIP8_REGISTER_COUNT; ++i) {
-        LOG("V[%d] : %s", i, from_hex(V[i]).c_str());
+        LOG("V[%d] : 0x%02X", i, V[i]);
     }
 
     for (int i = 0; i < CHIP8_KEY_COUNT; ++i) {
-        LOG("K[%d] : %s", i, from_hex(key[i]).c_str());
+        LOG("K[%d] : 0x%02X", i, key[i]);
     }
 }
 
