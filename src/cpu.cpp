@@ -4,19 +4,22 @@
 #include "utils.h"
 
 CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
-    pc(0x200), delay_timer(0), sound_timer(0), need_draw(false)
+    pc(CHIP8_START_ADDRESS), delay_timer(0), sound_timer(0), need_draw(false)
 {
+    /* Clear all registers, stack, keys, graphics */
+    std::memset(V, 0, sizeof(V));
+    std::memset(gfx, 0, sizeof(gfx));
+    std::memset(stack, 0, sizeof(stack));
+    std::memset(key, 0, sizeof(key));
+
+    /* Clear memory */
+    std::memset(memory, 0, sizeof(memory));
+
     /* Load font into memory */
     std::memcpy(memory, chip8_fontset, sizeof(chip8_fontset));
 
     /* Load game into memory */
     std::memcpy(memory + CHIP8_START_ADDRESS, rom.get(), CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS);
-
-    /* Clear all registers, stack, graphics */
-    std::memset(V, 0, sizeof(V));
-    std::memset(gfx, 0, sizeof(gfx));
-    std::memset(stack, 0, sizeof(stack));
-    std::memset(key, 0, sizeof(key));
 }
 
 void CPU::dump()
@@ -49,7 +52,7 @@ void CPU::emulate_cycle()
 
 void CPU::decode(uint16_t op)
 {
-    uint16_t high = op & 0xF000;
+    const uint16_t high = op & 0xF000;
     switch (high) {
     case 0x0000:
         process0(op);
@@ -201,20 +204,23 @@ void CPU::processE(uint16_t op)
 void CPU::processD(uint16_t op)
 {
     /* DRAW */
-    uint8_t x = V[(op & 0x0F00) >> 8];
-    uint8_t y = V[(op & 0x00F0) >> 4];
-    uint8_t height = op & 0x000F;
+    const uint8_t X = (op & 0x0F00) >> 8;
+    const uint8_t Y = (op & 0x00F0) >> 4;
+
+    const uint8_t col = V[X];
+    const uint8_t row = V[Y];
+    const uint8_t height = op & 0x000F;
 
     V[0xF] = 0; /* Clear the collision bit */
     for (uint8_t h = 0; h < height; ++h) {
-        const uint8_t pixel = memory[index + h];
-        /* Now read in the row value */
-        for (uint8_t w = 0; w < 8; ++w) {
-            /* Check if the bit is set in the 8-pixel row */
-            if (pixel & (0x0080 >> w)) {
-                const uint8_t offset = x + w + ((y + h) * CHIP8_PIXELS_WIDTH);
+        /* Now read in a row of 8 sprite pixels */
+        const uint8_t spriteRow = memory[index + h];
+        for (uint8_t b = 0; b < 8; ++b) {
+            /* Check if the bit is set in the sprite */
+            if (spriteRow & (0x0080 >> b)) {
+                const uint8_t offset = col + b + ((row + h) * CHIP8_PIXELS_WIDTH);
                 if (gfx[offset] == 1) {
-                    V[0xF] = 1; /* Collision! */
+                    V[0xF] = 1; /* Collision! This happens since XOR'ing 1 and 1 will result in 0. */
                 }
                 gfx[offset] ^= 1;
             }
@@ -412,6 +418,8 @@ void CPU::process0(uint16_t op)
         /* RET */
         pc = stack[--sp];
         break;
+    default:
+        LOG("process0() 0x%04X is unrecognized.", op);
     }
 }
 

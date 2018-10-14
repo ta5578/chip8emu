@@ -12,7 +12,7 @@ static void show_help()
     std::cout << "   --help | -h -- displays this help screen\n";
 }
 
-static void draw(SDL_Window *win, uint8_t *gfx)
+static void draw(SDL_Window *win, const uint8_t *gfx)
 {
     SDL_Surface *surface = SDL_GetWindowSurface(win);
     SDL_LockSurface(surface);
