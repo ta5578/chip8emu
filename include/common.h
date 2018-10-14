@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#ifdef NDEBUG
+#ifndef NDEBUG
     #include <cstdio>
 
 
@@ -15,8 +15,6 @@
 #else
     #define LOG(m, ...)
 #endif
-
-#define V_UNUSED(x) ((void)(x))
 
 #define CHIP8_MEMORY_SIZE (0x1000)
 #define CHIP8_REGISTER_COUNT (16)
