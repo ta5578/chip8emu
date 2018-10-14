@@ -420,6 +420,11 @@ uint16_t CPU::next()
     return memory[pc] << 8 | memory[pc + 1];
 }
 
+void CPU::setDraw(bool draw)
+{
+    need_draw = draw;
+}
+
 bool CPU::needsDraw() const
 {
     return need_draw;

@@ -75,6 +75,7 @@ int main(int argc, char **argv)
             cpu.emulate_cycle();
             if (cpu.needsDraw()) {
                 draw(win, cpu.getGFX());
+                cpu.setDraw(false);
             }
         }
 

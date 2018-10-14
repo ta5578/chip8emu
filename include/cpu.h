@@ -54,6 +54,8 @@ public:
     void dump();
     bool needsDraw() const;
 
+    void setDraw(bool draw);
+
     uint8_t* getGFX();
 
 private:
