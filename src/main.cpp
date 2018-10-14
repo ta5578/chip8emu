@@ -1,8 +1,8 @@
 #include <iostream>
+#include <cstdio>
 #include <SDL2/SDL.h>
-#include "cpu.h"
 #include <cstring>
-#include "utils.h"
+#include "cpu.h"
 
 static void show_help()
 {
@@ -11,6 +11,26 @@ static void show_help()
     std::cout << "Here are the supported options:\n";
     std::cout << "   --help | -h -- displays this help screen\n";
 }
+
+static ROM read_bin_file(const char* filePath)
+{
+    std::FILE* rom = std::fopen(filePath, "rb");
+    if (rom == nullptr) {
+        return nullptr;
+    }
+
+    std::fseek(rom, 0, SEEK_END);
+    auto fileSize = std::ftell(rom);
+    std::fseek(rom, 0, SEEK_SET);
+
+    auto memory = std::make_unique<uint8_t[]>(fileSize);
+
+    std::fread(memory.get(), sizeof(uint8_t), fileSize, rom);
+    std::fclose(rom);
+
+    return memory;
+}
+
 
 static void draw(SDL_Window *win, const uint8_t *gfx)
 {

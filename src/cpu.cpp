@@ -1,7 +1,6 @@
 #include "cpu.h"
 #include <cstring>
 #include <iostream>
-#include "utils.h"
 
 static const uint8_t CHIP8_FONTSET[CHIP8_FONT_COUNT] =
 {
