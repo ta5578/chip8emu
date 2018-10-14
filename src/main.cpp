@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         CPU cpu(std::move(rom));
 
         if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cerr << "Couldn't initialize SDL!\n";
+            std::cerr << "Couldn't initialize SDL! " << SDL_GetError() << "\n";
             return EXIT_FAILURE;
         }
 
