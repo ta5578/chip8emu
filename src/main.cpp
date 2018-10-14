@@ -19,9 +19,11 @@ static void draw(SDL_Window *win, const uint8_t *gfx)
     uint32_t *pixels = static_cast<uint32_t*>(surface->pixels);
     std::memset(pixels, 0, surface->w * surface->h * sizeof(*pixels));
 
-    for (uint32_t i = 0; i < CHIP8_WINDOW_HEIGHT; ++i) {
-        for (uint32_t j = 0; j < CHIP8_WINDOW_WIDTH; ++j) {
-            pixels[j + i * surface->w] = gfx[(j / CHIP8_WINDOW_SCALAR) + (i / CHIP8_WINDOW_SCALAR) * CHIP8_PIXELS_WIDTH] ? 0xFFFFFFFF : 0;
+    for (uint32_t r = 0; r < CHIP8_WINDOW_HEIGHT; ++r) {
+        const auto row = r / CHIP8_WINDOW_SCALAR;
+        for (uint32_t c = 0; c < CHIP8_WINDOW_WIDTH; ++c) {
+            const auto col = c / CHIP8_WINDOW_SCALAR;
+            pixels[c + (r * surface->w)] = gfx[col + (row * CHIP8_PIXELS_WIDTH)] ? 0xFFFFFFFF : 0;
         }
     }
     SDL_UnlockSurface(surface);
