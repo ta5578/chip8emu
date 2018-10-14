@@ -3,8 +3,48 @@
 #include <iostream>
 #include "utils.h"
 
-CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
-    pc(CHIP8_START_ADDRESS), delay_timer(0), sound_timer(0), need_draw(false)
+static const uint8_t CHIP8_FONTSET[CHIP8_FONT_COUNT] =
+{
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+static const int CHIP8_KEYMAP[CHIP8_KEY_COUNT] = {
+    SDLK_0,
+    SDLK_1,
+    SDLK_2,
+    SDLK_3,
+    SDLK_4,
+    SDLK_5,
+    SDLK_6,
+    SDLK_7,
+    SDLK_8,
+    SDLK_9,
+    SDLK_a,
+    SDLK_b,
+    SDLK_c,
+    SDLK_d,
+    SDLK_e,
+    SDLK_f
+};
+
+CPU::CPU(ROM rom) 
+    : sp(0), opcode(0), index(0), pc(CHIP8_START_ADDRESS), 
+    delay_timer(0), sound_timer(0), need_draw(false)
 {
     /* Clear all registers, stack, keys, graphics */
     std::memset(V, 0, sizeof(V));
@@ -16,7 +56,7 @@ CPU::CPU(ROM rom) : sp(0), opcode(0), index(0),
     std::memset(memory, 0, sizeof(memory));
 
     /* Load font into memory */
-    std::memcpy(memory, chip8_fontset, sizeof(chip8_fontset));
+    std::memcpy(memory, CHIP8_FONTSET, sizeof(CHIP8_FONTSET));
 
     /* Load game into memory */
     std::memcpy(memory + CHIP8_START_ADDRESS, rom.get(), CHIP8_MEMORY_SIZE - CHIP8_START_ADDRESS);
@@ -123,7 +163,7 @@ void CPU::processF(uint16_t op)
         /* KEYW */
         const uint8_t *keys = SDL_GetKeyboardState(nullptr);
         for (uint8_t i = 0; i < CHIP8_KEY_COUNT; ++i) {
-            if (keys[keymap[i]]) {
+            if (keys[CHIP8_KEYMAP[i]]) {
                 V[X] = i;
                 pc += 2;
             }
@@ -171,6 +211,9 @@ void CPU::processF(uint16_t op)
         }
         pc += 2;
         break;
+    default:
+        LOG("processF() 0x%04X is not recognized.", op);
+        break;
     }
 }
 
@@ -215,10 +258,16 @@ void CPU::processD(uint16_t op)
     for (uint8_t h = 0; h < height; ++h) {
         /* Now read in a row of 8 sprite pixels */
         const uint8_t spriteRow = memory[index + h];
+        LOG("0x%02X sprite row read from 0x%04X", spriteRow, index + h);
         for (uint8_t b = 0; b < 8; ++b) {
             /* Check if the bit is set in the sprite */
             if (spriteRow & (0x0080 >> b)) {
-                const uint8_t offset = col + b + ((row + h) * CHIP8_PIXELS_WIDTH);
+                /* 
+                The offset into the graphics is obtained through letting 'b'
+                represent a single pixel in the X position since spriteRow is a byte containing 8 pixels' worth of data.
+                We then add that as an offset into V[X] and V[Y].
+                */
+                const int offset = col + b + ((row + h) * CHIP8_PIXELS_WIDTH);
                 if (gfx[offset] == 1) {
                     V[0xF] = 1; /* Collision! This happens since XOR'ing 1 and 1 will result in 0. */
                 }
